@@ -1,4 +1,5 @@
 <?php
+namespace WPC;
 /**
  * @package dicewidget
  */
@@ -33,6 +34,55 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 if (! defined( 'ABSPATH') ){
     die;
 }
+    
+class Widget_Loader{
+
+  private static $_instance = null;
+
+  public static function instance()
+  {
+    if (is_null(self::$_instance)) {
+      self::$_instance = new self();
+    }
+    return self::$_instance;
+  }
+
+
+  private function include_widgets_files(){
+    require_once(__DIR__ . '/dice.php');
+  }
+
+  public function register_widgets(){
+
+    $this->include_widgets_files();
+
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Widgets\Advertisement());
+
+  }
+
+  public function __construct(){
+    add_action('elementor/widgets/widgets_registered', [$this, 'register_widgets'], 99);
+    add_action( 'wp_enqueue_scripts', [$this, 'enqueue'], 100 );
+  }
+
+    public function enqueue(){ 
+
+        wp_enqueue_script( 'jqx', 'https://code.jquery.com/jquery-1.12.4.js', array ( 'json2' ), 1.1, false);
+
+        wp_enqueue_script( 'jqui','https://code.jquery.com/ui/1.12.1/jquery-ui.js', array ( 'jqx' ), 1.1, false);
+        wp_enqueue_style( 'jqui','https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',2);        
+
+        wp_enqueue_script( 'jqx_touch', plugins_url('/js/jquery.ui.touch-punch.min.js',__FILE__), array ( 'jquery' ), 1.1, true); 
+        
+        wp_enqueue_script( 'dicejs', plugins_url('/js/dice.js',__FILE__), array ( 'jqx','jquery','jqx_touch' ), 1.1, true);
+        wp_enqueue_style( 'dicecss', plugins_url('/css/dice.css',__FILE__), 99);
+    }
+}
+
+// Instantiate Plugin Class
+Widget_Loader::instance();
+
+
 
 class dicewidget
 {
@@ -47,8 +97,6 @@ class dicewidget
     }
 
     function register(){
-        add_action( 'before_header', array($this, 'custom_elementor') );
-
         add_action( 'admin_enqueue_scripts', array($this, 'enqueue') );
         add_action( 'wp_enqueue_scripts', array($this, 'enqueue') );
     }
@@ -56,52 +104,15 @@ class dicewidget
     //Enqueue on all other pages
     function enqueue(){ 
 
-        //Bootstrap
-        wp_enqueue_style( 'bootstrap4_css', plugins_url('/assets/bootstrap4/bootstrap_4_5_2_min.css',__FILE__),80);
-        wp_enqueue_script( 'bootstrap_bundle_scripts', plugins_url('/assets/bootstrap4/bootstrap.bundle.min.js',__FILE__), array('jquery'));
-        wp_enqueue_script( 'bootstrap_input_spinner', plugins_url('/assets/bootstrap4/bootstrap-input-spinner.js',__FILE__), array('bootstrap_bundle_scripts'));
+        wp_enqueue_script( 'jqx', 'https://code.jquery.com/jquery-1.12.4.js', array ( 'json2' ), 1.1, false);
+
+        wp_enqueue_script( 'jqui','https://code.jquery.com/ui/1.12.1/jquery-ui.js', array ( 'jqx' ), 1.1, false);
+        wp_enqueue_style( 'jqui','https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',2);        
+
+        wp_enqueue_script( 'jqx_touch', plugins_url('/js/jquery.ui.touch-punch.min.js',__FILE__), array ( 'jquery' ), 1.1, true); 
         
-        
-        //jQuery UI
-        wp_enqueue_style( 'jquery_ui_styles', plugins_url('/assets/jquery_ui/jquery-ui.min.css',__FILE__),82);
-        wp_enqueue_script( 'jquery_ui_scripts', plugins_url('/assets/jquery_ui/jquery-ui.min.js',__FILE__), array('jquery'));
-        wp_enqueue_script( 'jquery_ui_rotatable_scripts', plugins_url('/assets/jquery_ui/jquery.ui.rotatable.js',__FILE__), array('jquery_touch_punch'));
-        //Touch Punch
-        wp_enqueue_script( 'jquery_touch_punch', plugins_url('/assets/touch-punch/touch-punch.min.js',__FILE__), array('jquery_ui_scripts'));
-
-        //Font-Awesome
-        wp_enqueue_style( 'fontawesome_css', plugins_url('/assets/font_awesome/css/font-awesome.css',__FILE__),90);
-
-        //DropzoneJs
-        wp_enqueue_style( 'stickerprint_dropzone_styles', plugins_url('/assets/dropzonejs/dropzone.css',__FILE__),98);
-        wp_enqueue_script( 'stickerprint_dropzone_scripts', plugins_url('/assets/dropzonejs/dropzone.js',__FILE__), array('jquery'));
-
-        //PrintJs
-        wp_enqueue_style( 'stickerprint_printjs_styles', plugins_url('/assets/printjs/print.min.css',__FILE__),98);
-        //wp_enqueue_script( 'stickerprint_printjs_scripts', plugins_url('/assets/printjs/print.min.js',__FILE__), array('jquery'));
-        //wp_enqueue_script( 'stickerprint_printjs_scripts', plugins_url('/assets/printjs/printThis.js',__FILE__), array('jquery'));
-        wp_enqueue_script( 'stickerprint_jspdf_scripts', plugins_url('/assets/printjs/jspdf.js',__FILE__), array('jquery'));
-
-        //HTML2CANVAS
-        wp_enqueue_script( 'stickerprint_html2canvas_scripts', plugins_url('/assets/html2canvas/html2canvas.js',__FILE__), array('jquery'));
-
-        //HEIC 2 ANY
-        wp_enqueue_script( 'stickerprint_heic2any_scripts', plugins_url('/assets/heic2any/heic2any.min.js',__FILE__), array('jquery'));
-
-        //Common CSS
-        wp_enqueue_style( 'stickerprint_common_styles', plugins_url('/assets/common.css',__FILE__),101);
-
-        //FrontEnd scripts and styles
-        wp_enqueue_script( 'stickerprint_script', plugins_url('/assets/stickerprint_scripts.js',__FILE__), array('stickerprint_heic2any_scripts','stickerprint_html2canvas_scripts','stickerprint_jspdf_scripts','stickerprint_dropzone_scripts','jquery'));
-    }
-
-
- 
-
-
-    //------ Append Dice Widget
-    function custom_elementor(){
-        include 'custom_elementor.php';
+        wp_enqueue_script( 'dicejs', plugins_url('/js/dice.js',__FILE__), array ( 'jqx','jquery','jqx_touch' ), 1.1, true);
+        wp_enqueue_style( 'dicecss', plugins_url('/css/dice.css',__FILE__), 99);
     }
     
 }
