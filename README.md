@@ -1,8 +1,4 @@
-# Dice Widget by Chandima J
+# Draggable Element - Make any wordpress element draggable (Mobile optimized)
 
-## Installation
-
-1. Download this folder as a zip file and upload it as a wordpress plugin on your wordpress.
-(Plugins / Add New / Upload)
-
-2. Activate the Plugin
+Make any element draggable within the html canvas or within a bounding element in wordpress.
+(Designed to be used with wordpress elementor plugin)
